@@ -1,0 +1,20 @@
+#pragma once
+
+#ifndef Main00_H
+#define Main00_H
+
+#cmakedefine H_SERVER	//controlls whether to make a server or client 
+#cmakedefine H_OS_WINDOWS
+
+#ifdef H_OS_WINDOWS
+#include <WinSock2.h>
+#endif // Enable windows sockets
+
+#define CL_HPP_ENABLE_EXCEPTIONS
+#define CL_HPP_TARGET_OPENCL_VERSION 200
+
+#define GOOGLE_STRIP_LOG -1
+
+void TestTheTester(int &, int );
+#endif // !Main00_H
+

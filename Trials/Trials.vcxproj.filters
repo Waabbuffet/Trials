@@ -13,15 +13,94 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Source Files\Util">
+      <UniqueIdentifier>{a3fcc594-aa1d-4d66-bc5c-522a25e3b9d1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Util\Debug">
+      <UniqueIdentifier>{b0d728d0-0e68-4f85-a6cd-6aae2a7a0562}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Util">
+      <UniqueIdentifier>{70adc61d-031e-48c5-9cf3-0b936f44e3a0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Util\Debug">
+      <UniqueIdentifier>{78ae0fc6-241d-4177-856a-5dd8337d53b3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Util\Network">
+      <UniqueIdentifier>{381e60ea-d958-41ed-b9d6-7f80553dbfcf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\Kernel">
+      <UniqueIdentifier>{b2c589b9-2493-4d64-b5af-32406bc686de}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Core">
+      <UniqueIdentifier>{6f7553b1-3eb5-4ce3-bd24-125a6125eabd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Core\Network">
+      <UniqueIdentifier>{6e42de49-f3ae-4c81-a275-61366f0ebb07}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Core">
+      <UniqueIdentifier>{d9441459-c2b3-4d60-a0d0-7b54ea4443dc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Core\Network">
+      <UniqueIdentifier>{14ccd14c-3135-45a7-b441-57de669b6dac}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Util\Network">
+      <UniqueIdentifier>{952adf83-614f-40c7-b34f-45d27bd6aff1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="DataHeader.cpp">
+      <Filter>Source Files\Util\Network</Filter>
+    </ClCompile>
+    <ClCompile Include="Session.cpp">
+      <Filter>Source Files\Core\Network</Filter>
+    </ClCompile>
+    <ClCompile Include="Client.cpp">
+      <Filter>Source Files\Core\Network</Filter>
+    </ClCompile>
+    <ClCompile Include="PacketSerializer.cpp">
+      <Filter>Source Files\Util\Network</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Main.hpp">
+    <ClInclude Include="PacketSerializer.h">
+      <Filter>Header Files\Core\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Main.h.in">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Main.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Session.h">
+      <Filter>Header Files\Core\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="Client.h">
+      <Filter>Header Files\Core\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="DataHeader.h">
+      <Filter>Header Files\Util\Network</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+    <None Include="vecadd.cl">
+      <Filter>Resource Files\Kernel</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Trials.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="CMakeLists.txt">
+      <Filter>Source Files</Filter>
+    </Text>
   </ItemGroup>
 </Project>
