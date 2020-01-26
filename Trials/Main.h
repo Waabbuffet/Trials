@@ -16,6 +16,18 @@
 
 #define GOOGLE_STRIP_LOG -1
 
+#include <fstream>
+#include <string>
+#include <iostream>
+
+#include <ws2tcpip.h>
+#include <stdio.h>
+#include <evpp/tcp_server.h>
+#include <evpp/tcp_client.h>
+#include <evpp/buffer.h>
+#include <evpp/tcp_conn.h>
+
+
 void TestTheTester(int&, int);
 #endif // !Main00_H
 

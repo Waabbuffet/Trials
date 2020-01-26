@@ -9,27 +9,16 @@ namespace Trials
        A session allows a client to:
                     - Register callback functions
                     - Write to the socket, (never have to read due to the event loop)
-
     */
-    class TCPSession : std::enable_shared_from_this<TCPSession>
-    {
-
-    private:
-        evpp::TCPClient client_; //The evpp tcp client
-
-        Client* owner_;         //The trials client owner
-        std::mutex mutex_;      //The mutex locking the active_connection. Prevents changing the active_connection while we are writing to it 
-        evpp::TCPConnPtr active_connection_; //The active connection, equivalent to a event loop and a socket
-        std::function<void(const evpp::TCPConnPtr & conn, evpp::Buffer * buf)> onMessageFunction;
-    public:
-        TCPSession(evpp::EventLoop* loop,
+        TCPSession::TCPSession(evpp::EventLoop* loop,
             const std::string& serverAddr,
             const std::string& name,
-            const int sessionId,
-            Client* master_client)
+            const int sessionId)
             : client_(loop, serverAddr, name),
-            owner_(master_client),
-            active_connection_()
+            
+            active_connection_(),
+            header_buffer(sizeof(Trials::DataHeader)),
+            data_buffer(sizeof(Trials::DataHeader))
         { 
             client_.SetConnectionCallback(
                 std::bind(&TCPSession::onConnectionEstablished, this, std::placeholders::_1));
@@ -40,52 +29,66 @@ namespace Trials
             
         }
 
-        ~TCPSession()
+        TCPSession::~TCPSession()
         {
 
         }
-    public:
-
-        //This function will add a header to the buffet before sending the contents to the user
-        void writeToConnection()
-        {
-            
-        }
-
         //This function will use the session tcp socket to send the contents of buf over to the server
         //Note raw means it will not do any preprocessing on the buffer before the contents are sent over 
-        void rawWriteToConnection(evpp::Buffer* buf)
+        void TCPSession::rawWriteToConnection(evpp::Buffer* buf)
         {
             std::lock_guard<std::mutex> lock(mutex_);
-            if (active_connection_->IsConnected)
+            if (active_connection_)
             {
-                active_connection_->Send(buf);
+                if (active_connection_->IsConnected())
+                {
+                    active_connection_->Send(buf);
+                }
             }
         }
 
-        void start()  
+        bool TCPSession::hasPacketPending()
+        {
+            return this->packetPending;
+        }
+
+        void TCPSession::setPacketPending(bool packetPending)
+        {
+            this->packetPending = packetPending;
+        }
+
+        bool TCPSession::isConnected()
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            if (active_connection_)
+            {
+                return active_connection_->IsConnected();
+            }
+            return false;
+        }
+
+        void TCPSession::start()
         {
             client_.Connect();
         }
 
-        void stop() 
+        void TCPSession::stop()
         {
             client_.Disconnect();
         }
 
-        void setOnFunctionCallback(std::function<void(const evpp::TCPConnPtr & conn, evpp::Buffer * buf)> onMessageFunction)
+        void TCPSession::setOnFunctionCallback(std::function<void(const evpp::TCPConnPtr & conn, evpp::Buffer * buf)> onMessageFunction)
         {
             this->onMessageFunction = onMessageFunction;
         }
 
-    private:
         /* This function is called whenever the client establishes a connection to the server */
-        void onConnectionEstablished(const evpp::TCPConnPtr &conn)
+        void TCPSession::onConnectionEstablished(const evpp::TCPConnPtr &conn)
         {
             //check to see if the connection is established 
             //if it is this is the new connection to the server
             std::lock_guard<std::mutex> lock(mutex_);
-            if (conn->IsConnected)
+            if (conn->IsConnected())
             {
                 active_connection_ = conn;
             }
@@ -95,9 +98,58 @@ namespace Trials
             }
         }
         
-        void onMessageFromServer(const evpp::TCPConnPtr& conn, evpp::Buffer* buf)
+        void TCPSession::defaultOnMessageFromServer(const evpp::TCPConnPtr& conn, evpp::Buffer* buf)
         {
-            //Check the function, if no function revert back to the client callback function
+            while (buf->size() >= sizeof(Trials::DataHeader))
+            {
+                if (!hasHeader)//is used for checking if we are collecting data, or are we collecting the header 
+                {
+                    if (header_buffer.size() < sizeof(Trials::DataHeader))
+                    {
+                        //find how far we are from a dataheader, then grab the slice of that from buf and add it to header 
+                        header_buffer.Append(buf->Next(sizeof(Trials::DataHeader) - header_buffer.size()));
+                    }
+
+                    if (header_buffer.size() == sizeof(Trials::DataHeader))
+                    {
+                        hasHeader = true;
+                        //the header is in network, time to convert to host
+                        //Well if things break we can run the test here
+                        try
+                        {
+                            //struct Trials::DataHeader* incoming_header = dynamic_cast<Trials::DataHeader&>(header_buffer.data);
+                            struct Trials::DataHeader* incoming_header = (Trials::DataHeader*)header_buffer.data();
+                            if (incoming_header != nullptr)
+                            {
+                                //Congrats successful packet transfer
+                                std::cout << "The type is " << incoming_header->type_;
+                            }
+                            else
+                            {
+                                std::cout << "[TCPSession] Unable to read header";
+                            }
+                        }
+                        catch (std::exception e)
+                        {
+                            std::cout << "[TCPSession] Unable to read header";
+                        }
+                    }
+                }
+            }
+            
         }
-    };
+        
+        //This function is called whenever the server responds with a message 
+        //If the session has no registered callback function the client 
+        void TCPSession::onMessageFromServer(const evpp::TCPConnPtr& conn, evpp::Buffer* buf)
+        {
+            if (this->onMessageFunction)
+            {
+                this->onMessageFunction(conn, buf);
+            }
+            else
+            {
+                this->defaultOnMessageFromServer(conn, buf);
+            }
+        }
 }

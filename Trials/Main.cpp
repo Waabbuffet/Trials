@@ -1,19 +1,5 @@
 ﻿#include "Main.h" //if this appears are error ignore this 
-
-#include <fstream>
-#include <string>
-#include <iostream>
-
-#ifdef H_OS_WINDOWS
-#include <winsock2.h>
-#endif
-
-#include <ws2tcpip.h>
-#include <stdio.h>
-#include <evpp/tcp_server.h>
-#include <evpp/tcp_client.h>
-#include <evpp/buffer.h>
-#include <evpp/tcp_conn.h>
+#include "Client.h"
 
 void testOpenCL()
 {
@@ -106,13 +92,45 @@ int main(int argc, char* argv[])
     }
 #endif // DEBUG
 
+    /* Here is how the client will work, easy prototype 
+       1. Create N image packets for the client
+       2. Init the client with X sessions
+       3. Create a polling loop, if the client is ready and has no frame in transaction
+       4. Send the frame using the session 
+       5. Wait for response 
+       6. Handle response
+       7. Repeat loop
+    */
 
+    evpp::EventLoopThread loop;
+    std::string serverAddr = "localhost:9099";
 
+    struct Trials::DataHeader data_('U',1, nullptr);
+    evpp::Buffer the_buffer(sizeof(Trials::DataHeader));
 
+    the_buffer.Write(&data_, sizeof(data_));
+
+    Trials::Client client(loop.loop(), "trials_client", serverAddr, 1, 1);
+   
+    loop.Start(true);
     
+    std::cout << "client is sending to server:";
+
+    if (!client.isSessionConnected(0))
+        client.waitForSessionConnection(0);
+
+    client.writeToServer(0, &the_buffer);
+    
+    std::string line;
+    while (std::getline(std::cin, line)) {
+        if (line == "quit") {
+            client.stopAll();
+            break;
+        }
+    }
+    loop.Stop(true);
     return 0;
 }
-
 
 void TestTheTester(int &a, int b)
 {
