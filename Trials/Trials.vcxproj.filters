@@ -63,6 +63,12 @@
     <ClCompile Include="PacketSerializer.cpp">
       <Filter>Source Files\Util\Network</Filter>
     </ClCompile>
+    <ClCompile Include="Server.cpp">
+      <Filter>Source Files\Core\Network</Filter>
+    </ClCompile>
+    <ClCompile Include="HeapObjectPool.cpp">
+      <Filter>Source Files\Util</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="PacketSerializer.h">
@@ -85,6 +91,12 @@
     </ClInclude>
     <ClInclude Include="DataHeader.h">
       <Filter>Header Files\Util\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="Server.h">
+      <Filter>Header Files\Core\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="HeapObjectPool.h">
+      <Filter>Header Files\Util</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -46,10 +46,10 @@ target_link_libraries (Capstone ${LIBEVENTCORE_LIBRARY})
 target_link_libraries (Capstone ${LIBEVENTSTATIC_LIBRARY})
 
 #Setup options and configure files
-option(H_OS_WINDOWS "Host OS is windows" ON)
-
 if(UNIX)
-	set(H_OS_WINDOWS OFF)
+	option(H_OS_WINDOWS "Host OS is windows" OFF)
+else
+	option(H_OS_WINDOWS "Host OS is windows" ON)
 endif(UNIX)
 
 configure_file(Main.h.in Main.h)

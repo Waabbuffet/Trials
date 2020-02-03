@@ -9,6 +9,7 @@
 
 #ifdef H_OS_WINDOWS
 #include <WinSock2.h>
+#include <ws2tcpip.h>
 #endif // Enable windows sockets, add else for linux sockets
 
 #define CL_HPP_ENABLE_EXCEPTIONS
@@ -20,13 +21,11 @@
 #include <string>
 #include <iostream>
 
-#include <ws2tcpip.h>
 #include <stdio.h>
 #include <evpp/tcp_server.h>
 #include <evpp/tcp_client.h>
 #include <evpp/buffer.h>
 #include <evpp/tcp_conn.h>
-
 
 void TestTheTester(int&, int);
 #endif // !Main00_H

@@ -20,7 +20,7 @@ namespace Trials
 		evpp::Buffer header_buffer;   //Used to store the incoming header
 		evpp::Buffer data_buffer;     //Used to store the incoming data
 
-		//Client* owner_;
+		int sessionId;
 
 		bool packetPending, hasHeader;
 		std::mutex mutex_;          //The mutex locking the active_connection. Prevents changing the active_connection while we are writing to it 

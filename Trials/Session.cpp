@@ -18,7 +18,8 @@ namespace Trials
             
             active_connection_(),
             header_buffer(sizeof(Trials::DataHeader)),
-            data_buffer(sizeof(Trials::DataHeader))
+            data_buffer(sizeof(Trials::DataHeader)),
+            sessionId(sessionId)
         { 
             client_.SetConnectionCallback(
                 std::bind(&TCPSession::onConnectionEstablished, this, std::placeholders::_1));
@@ -42,7 +43,9 @@ namespace Trials
             {
                 if (active_connection_->IsConnected())
                 {
+                    setPacketPending(true);
                     active_connection_->Send(buf);
+                    std::cout << "I sent it all homie" << std::endl;
                 }
             }
         }
@@ -85,11 +88,10 @@ namespace Trials
         /* This function is called whenever the client establishes a connection to the server */
         void TCPSession::onConnectionEstablished(const evpp::TCPConnPtr &conn)
         {
-            //check to see if the connection is established 
-            //if it is this is the new connection to the server
             std::lock_guard<std::mutex> lock(mutex_);
             if (conn->IsConnected())
             {
+                std::cout << "New connection established! " << this->sessionId << "vs" << conn->id();
                 active_connection_ = conn;
             }
             else
@@ -122,7 +124,7 @@ namespace Trials
                             if (incoming_header != nullptr)
                             {
                                 //Congrats successful packet transfer
-                                std::cout << "The type is " << incoming_header->type_;
+                                std::cout << "The type is " << incoming_header->type_ << " id:" << conn->id();
                             }
                             else
                             {
@@ -133,7 +135,14 @@ namespace Trials
                         {
                             std::cout << "[TCPSession] Unable to read header";
                         }
+                        setPacketPending(false);
                     }
+                }
+
+                if (hasHeader)
+                {
+                    //now we looking for data
+                    //TODO let server talk with client
                 }
             }
             

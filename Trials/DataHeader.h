@@ -2,7 +2,8 @@
 
 #ifndef DataHeader00
 #define DataHeader00
-#include "Main.h"
+#include <string>
+
 
 //Todo: Create Mapping of headers to handlers
 //Then we can add in handle functions to the dataheader
@@ -11,12 +12,11 @@ namespace Trials
 	struct DataHeader
 	{
 	public:
-		char type_;			// what type of packet 
-		int dataLength_;	// how long the data is
-		char* data_;		// where the data is
+		char type_;							// what type of packet 
+		unsigned int dataLength_;			// how long the data is
 
 	public:
-		DataHeader(char type, int dataLength, char* data);
+		DataHeader(char type, int dataLength);
 	};
 
 	struct ImageHeader : DataHeader
@@ -29,7 +29,7 @@ namespace Trials
 
 	public:
 		ImageHeader(int resolutionX, int resolutionY, int uniqueId,
-			bool isCompressed, int dataLength, char* data);
+			bool isCompressed, int dataLength);
 	};
 }
 #endif //DataHeader00

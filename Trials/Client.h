@@ -39,6 +39,7 @@ namespace Trials
 			std::vector< std::function<void(const evpp::TCPConnPtr & conn, evpp::Buffer * buf)>> sessionCallback);
 		~Client();
 
+		bool isSessionWaiting(int sessionId);
 		bool isSessionConnected(int sessionId);
 		void waitForSessionConnection(int sessionId);
 

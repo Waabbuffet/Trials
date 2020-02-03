@@ -75,6 +75,20 @@ namespace Trials
 		}
 	}
 	
+	bool Client::isSessionWaiting(int sessionId)
+	{
+		try
+		{
+			auto session = sessions_[sessionId];
+			return session->hasPacketPending();
+		}
+		catch (std::out_of_range error)
+		{
+			std::cout << "[Trials.Client] Tried to write to a session that does not exist\n";
+		}
+		return true;
+	}
+
 	bool Client::isSessionConnected(int sessionId)
 	{
 		try

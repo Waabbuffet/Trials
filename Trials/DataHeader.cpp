@@ -2,20 +2,19 @@
 
 namespace Trials
 {
-	DataHeader::DataHeader(char type, int dataLength, char* data) 
+	DataHeader::DataHeader(char type, int dataLength) 
 		: type_(type), 
-		dataLength_(dataLength),
-		data_(data)
+		dataLength_(dataLength)
 	{
 
 	}
 
-	ImageHeader::ImageHeader(int resolutionX, int resolutionY, int uniqueId, bool isCompressed, int dataLength, char* data)
+	ImageHeader::ImageHeader(int resolutionX, int resolutionY, int uniqueId, bool isCompressed, int dataLength)
 		: resolutionX_(resolutionX),
 		resolutionY_(resolutionY),
 		uniqueId_(uniqueId),
 		isCompressed_(isCompressed),
-		DataHeader{ 'F', dataLength, data}
+		DataHeader{ 'F', dataLength}
 	{
 
 	}

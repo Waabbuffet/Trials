@@ -1,5 +1,9 @@
-﻿#include "Main.h" //if this appears are error ignore this 
+﻿#include "Main.h" 
 #include "Client.h"
+#include "Server.h"
+#include "DataHeader.h"
+#include "opencv2/opencv.hpp"
+#include "HeapObjectPool.h"
 
 void testOpenCL()
 {
@@ -102,33 +106,84 @@ int main(int argc, char* argv[])
        7. Repeat loop
     */
 
-    evpp::EventLoopThread loop;
-    std::string serverAddr = "localhost:9099";
+    //Trials::HeapObjectPool<cv::Mat, 128> pool = Trials::HeapObjectPool<cv::Mat, 128>();
+    //Trials::OpenCVMatrixRequirement require_(10, 10, 10, 'f');
+    //cv::Mat* ptr = pool.acquire(&require_);
 
-    struct Trials::DataHeader data_('U',1, nullptr);
-    evpp::Buffer the_buffer(sizeof(Trials::DataHeader));
+    //6 220 800 bytes for 1 1920x1080 image
+    //1920x1080x3 because of each channel 
+    //Image is only 614,400 bytes tho, 
+    //how did this happen?
+    //We are sending raw matrix, we need to use encodings but I do not know how to get encoded frame
+    //Only decoded frame
+#ifndef H_SERVER
 
-    the_buffer.Write(&data_, sizeof(data_));
+        int numberSessions = 1;
+        int numberThreads = 1;
 
-    Trials::Client client(loop.loop(), "trials_client", serverAddr, 1, 1);
+        cv::VideoCapture cap(0);
+        if (!cap.isOpened())
+            return -1;
+
+        cap.set(cv::CAP_PROP_FRAME_WIDTH, 1920);
+        cap.set(cv::CAP_PROP_FRAME_WIDTH, 1080);
+
+        Trials::HeapObjectPool<cv::Mat, 128> pool = Trials::HeapObjectPool<cv::Mat, 128>();
+        Trials::OpenCVMatrixRequirement require_(1920, 1080, 3, CV_8UC3);
+    
+        evpp::EventLoopThread loop;
+        std::string serverAddr = "localhost:9099";
+
+        struct Trials::ImageHeader data_(1920, 1080, 1, false, 1);
+        evpp::Buffer the_buffer(sizeof(Trials::DataHeader));
+        Trials::Client client(loop.loop(), "trials_client", serverAddr, 1, 1);
    
-    loop.Start(true);
-    
-    std::cout << "client is sending to server:";
+        loop.Start(true);
+        cv::Mat* clientBuffers[1];
+        clientBuffers[0] = pool.acquire(&require_);
 
-    if (!client.isSessionConnected(0))
-        client.waitForSessionConnection(0);
+        for (int i = 0; i < 1; i ++)
+        {
+            if (!client.isSessionWaiting(i))
+            {
+                if (!client.isSessionConnected(i))
+                {
+                    client.waitForSessionConnection(i);
+                }
 
-    client.writeToServer(0, &the_buffer);
-    
-    std::string line;
-    while (std::getline(std::cin, line)) {
-        if (line == "quit") {
-            client.stopAll();
-            break;
+                *clientBuffers[0] = cv::imread("C:\\Users\\Waabbuffet\\Desktop\\COE848-Lab2\\index.jpg");
+                //cap >> *clientBuffers[0];
+                data_.dataLength_ = clientBuffers[0]->total() * clientBuffers[0]->elemSize();
+                
+                the_buffer.Write(&data_, sizeof(data_));
+                the_buffer.Write(clientBuffers[0]->data, data_.dataLength_);
+                client.writeToServer(0, &the_buffer);
+                std::cout << "the data is" << data_.dataLength_ << std::endl;
+            }
         }
-    }
-    loop.Stop(true);
+    
+        std::string line;
+        while (std::getline(std::cin, line)) 
+        {
+            if (line == "quit") {
+                client.stopAll();
+                break;
+            }
+        }
+
+        // if (!client.isSessionConnected(0))
+        //     client.waitForSessionConnection(0);
+
+        //client.writeToServer(0, &the_buffer);
+    
+        loop.Stop(true);
+#else
+    evpp::EventLoop loop;
+    std::string serverAddr = std::string("0.0.0.0") +":9099";
+    Trials::Server server(&loop, serverAddr, "trials_client" , 1);
+    server.Start();
+    loop.Run();
+#endif // DEBUG
     return 0;
 }
 
