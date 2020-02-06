@@ -3,7 +3,6 @@
 
 namespace Trials
 {
-
     PacketTracker::PacketTracker(): 
         bytesReceived(0),
         hasHeader(false),
@@ -185,7 +184,7 @@ namespace Trials
         if (connectionData[tempId]->bytesReceived == headers->dataLength_)
         {
             //Here we can move the image to the frame buffer queue 
-            //std::cout << "Read the image!" << connectionData[tempId]->bytesReceived;
+            std::cout << "Read the image!" << connectionData[tempId]->bytesReceived;
 
            // cv::imshow("test", *connectionData[tempId]->image_buffer);
 

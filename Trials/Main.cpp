@@ -116,7 +116,7 @@ int main(int argc, char* argv[])
     //how did this happen?
     //We are sending raw matrix, we need to use encodings but I do not know how to get encoded frame
     //Only decoded frame
-#ifndef H_SERVER
+#ifdef H_SERVER
 
         int numberSessions = 1;
         int numberThreads = 1;
@@ -132,7 +132,7 @@ int main(int argc, char* argv[])
         Trials::OpenCVMatrixRequirement require_(1920, 1080, 3, CV_8UC3);
     
         evpp::EventLoopThread loop;
-        std::string serverAddr = "localhost:9099";
+        std::string serverAddr = "10.0.0.192:9099";
 
         struct Trials::ImageHeader data_(1920, 1080, 1, false, 1);
         evpp::Buffer the_buffer(sizeof(Trials::DataHeader));
@@ -144,11 +144,11 @@ int main(int argc, char* argv[])
 
         for (int i = 0; i < 1; i ++)
         {
-            if (!client.isSessionWaiting(i))
+            if (!client.isSessionWaiting(0))
             {
-                if (!client.isSessionConnected(i))
+                if (!client.isSessionConnected(0))
                 {
-                    client.waitForSessionConnection(i);
+                    client.waitForSessionConnection(0);
                 }
 
                 *clientBuffers[0] = cv::imread("C:\\Users\\Waabbuffet\\Desktop\\COE848-Lab2\\index.jpg");
@@ -179,7 +179,7 @@ int main(int argc, char* argv[])
         loop.Stop(true);
 #else
     evpp::EventLoop loop;
-    std::string serverAddr = std::string("0.0.0.0") +":9099";
+    std::string serverAddr = std::string("10.0.0.192") +":9099";
     Trials::Server server(&loop, serverAddr, "trials_client" , 1);
     server.Start();
     loop.Run();

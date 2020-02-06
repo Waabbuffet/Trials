@@ -48,7 +48,7 @@ target_link_libraries (Capstone ${LIBEVENTSTATIC_LIBRARY})
 #Setup options and configure files
 if(UNIX)
 	option(H_OS_WINDOWS "Host OS is windows" OFF)
-else
+else()
 	option(H_OS_WINDOWS "Host OS is windows" ON)
 endif(UNIX)
 
