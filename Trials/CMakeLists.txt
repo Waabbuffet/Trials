@@ -21,6 +21,15 @@ if(OpenCL_FOUND)
 	target_link_libraries (Capstone ${OpenCL_LIBRARY})
 endif(OpenCL_FOUND)
 
+#Include openCV
+find_package(OpenCV REQUIRED)
+find_library(OpenCV_LIBRARY OpenCV)
+if(OpenCV_FOUND)
+	include_directories(${OpenCV_INCLUDE_DIRS})
+	target_link_libraries (Capstone ${OpenCV_LIBRARY})
+endif(OpenCV_FOUND)
+
+
 #Include EVPP
 find_path(EVPP_INCLUDE_DIR evpp)
 find_library(EVPP_LIBRARY evpp_static)
