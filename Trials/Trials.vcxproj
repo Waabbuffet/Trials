@@ -147,6 +147,7 @@
   <ItemGroup>
     <ClCompile Include="Client.cpp" />
     <ClCompile Include="DataHeader.cpp" />
+    <ClCompile Include="FrameBuffer.cpp" />
     <ClCompile Include="HeapObjectPool.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="PacketSerializer.cpp" />
@@ -156,6 +157,7 @@
   <ItemGroup>
     <ClInclude Include="Client.h" />
     <ClInclude Include="DataHeader.h" />
+    <ClInclude Include="FrameBuffer.h" />
     <ClInclude Include="HeapObjectPool.h" />
     <ClInclude Include="Main.h" />
     <ClInclude Include="Main.h.in" />

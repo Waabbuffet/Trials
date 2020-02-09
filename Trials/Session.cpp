@@ -45,7 +45,6 @@ namespace Trials
                 {
                     setPacketPending(true);
                     active_connection_->Send(buf);
-                    std::cout << "I sent it all homie" << std::endl;
                 }
             }
         }

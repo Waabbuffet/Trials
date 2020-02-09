@@ -24,8 +24,8 @@ namespace Trials
 	public:
 		int resolutionX_, resolutionY_, uniqueId_;
 
-		bool isCompressed_;
-		std::string formatType_;
+		bool isCompressed_, isEncoded_;
+		//std::string formatType_;
 
 	public:
 		ImageHeader(int resolutionX, int resolutionY, int uniqueId,

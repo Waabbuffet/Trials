@@ -3,14 +3,16 @@
 
 namespace Trials
 {
-    PacketTracker::PacketTracker(): 
+    PacketTracker::PacketTracker()
+        : 
         bytesReceived(0),
         hasHeader(false),
         header_buffer(new evpp::Buffer(sizeof(Trials::DataHeader))),
         data_buffer(new evpp::Buffer(sizeof(Trials::DataHeader))), 
         headerSize(sizeof(Trials::DataHeader))
     {
-
+      
+        
     }
 
     //TODO: I'd love to make a generic version of this
@@ -18,12 +20,13 @@ namespace Trials
     //Then I can use this as a base for anything
     Server::Server(evpp::EventLoop* loop,
         const std::string& serverAddr,
-        const std::string& name, 
+        const std::string& name,
         int threadCount)
         : theServer(loop, serverAddr, name, threadCount),
         connectionPools(),
         connectionData()
     {
+
         theServer.SetConnectionCallback(
             std::bind(&Server::OnConnection, this, std::placeholders::_1));
 
@@ -46,7 +49,6 @@ namespace Trials
 
             if (conn->id() > connectionData.size())
             {
-                std::cout << "Expanded the data" << conn->id() << std::endl;
                 connectionData.push_back(new PacketTracker());
             }
         }
@@ -59,20 +61,24 @@ namespace Trials
     void Server::onMessageReceive(const evpp::TCPConnPtr& conn, evpp::Buffer* buf)
     {
         unsigned int tempId = conn->id()-1;
-       // std::cout << "Server received something "<< tempId << "Remember: "<< connectionData.size() <<std::endl;
+        std::cout << "Server received something "<< tempId << "Remember: "<< connectionData.size() <<std::endl;
 
         evpp::Buffer* header_buffer = connectionData[tempId]->header_buffer;
         evpp::Buffer* data_buffer = connectionData[tempId]->data_buffer;
+        bool byPass = connectionData[tempId]->hasHeader;
 
-        while (buf->size() >= sizeof(Trials::DataHeader))
+        while (buf->size() > 0)
         {
+           std::cout << "Server received something " << tempId << "Server read" << buf->size() << std::endl;
             if (!connectionData[tempId]->hasHeader)//is used for checking if we are collecting data, or are we collecting the header 
             {
                 if (header_buffer->size() < connectionData[tempId]->headerSize)
                 {
                     //super important that this never goes negative otherwise ill be here forever
                     //TODO: Catch this error and stop
+                    
                     header_buffer->Append(buf->Next(connectionData[tempId]->headerSize - header_buffer->size()));
+                    std::cout << "After buffer" << buf->size() << std::endl;
                 }
 
                 if (header_buffer->size() == sizeof(Trials::DataHeader))
@@ -86,6 +92,7 @@ namespace Trials
                             //Here we promote the data into an image type and need to go back to collecting that
                             //TODO: We can save one loop cycle by looking for data now
                             std::cout << "Expanded the header size to" << sizeof(ImageHeader) << "from" << connectionData[tempId]->headerSize;
+                            //std::cout << "The data is" << connectionData[tempId]->bytesReceived << " size is ahaha";
                             connectionData[tempId]->headerSize = sizeof(ImageHeader);
                             break;
                         case 'D':
@@ -161,37 +168,42 @@ namespace Trials
         }
     }
 
+    //If we are sending a decoded frame, the size isnt x by y, its, 1 by size of bufffer
     void Server::handleImagePacket(const evpp::TCPConnPtr& conn, evpp::Buffer* buf, ImageHeader* headers)
     {
         unsigned int tempId = conn->id() - 1;
-        Trials::OpenCVMatrixRequirement require_(headers->resolutionX_, headers->resolutionY_, 3, CV_8UC3); 
+        //TODO: this changed from being resolutionX, resolution Y to datalength_, 1, CV_8UC1
+        Trials::OpenCVMatrixRequirement require_(headers->dataLength_, 1, 3, CV_8UC1);
+        if (!headers->isEncoded_) //Its raw and we must read raw data
+        {
+            require_.sizeX = headers->resolutionX_;
+            require_.sizeY = headers->resolutionY_;
+            require_.type = CV_8UC3;
+        }
+
+        std::cout << "The header resolution is: " << headers->resolutionX_ << "resolutionY: " << headers->resolutionY_;
 
         if (connectionData[tempId]->bytesReceived == 0) //Need to grab matrix from pool
         {
             connectionData[tempId]->image_buffer = pool.acquire(&require_);
         }
         
+        std::cout << "current: " << connectionData[tempId]->bytesReceived << "vs" << headers->dataLength_ <<std::endl;
         if (connectionData[tempId]->image_buffer != nullptr) //if the pool return an image buffer now we can read data
         {
             evpp::Slice readSlice = buf->Next(headers->dataLength_ - connectionData[tempId]->bytesReceived);
-            int bytes_read = readSlice.size();
+            unsigned int bytes_read = readSlice.size();
 
             //I can't remove this memcopy I don't think 
             std::memcpy((unsigned char*)((unsigned char*)connectionData[tempId]->image_buffer->data + connectionData[tempId]->bytesReceived), (unsigned char*)readSlice.data(), readSlice.size());
             connectionData[tempId]->bytesReceived += bytes_read;
+            
         }//if not successful wait until next read 
 
         if (connectionData[tempId]->bytesReceived == headers->dataLength_)
         {
             //Here we can move the image to the frame buffer queue 
-            std::cout << "Read the image!" << connectionData[tempId]->bytesReceived;
-
-           // cv::imshow("test", *connectionData[tempId]->image_buffer);
-
-            //cv::waitKey(3000);
-
-            pool.disown(connectionData[tempId]->image_buffer);
-            connectionData[tempId]->image_buffer = nullptr;
+            frame.addFrame(connectionData[tempId]->image_buffer);
         }
     }
 

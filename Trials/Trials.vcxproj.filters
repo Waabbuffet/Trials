@@ -69,6 +69,9 @@
     <ClCompile Include="HeapObjectPool.cpp">
       <Filter>Source Files\Util</Filter>
     </ClCompile>
+    <ClCompile Include="FrameBuffer.cpp">
+      <Filter>Source Files\Core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="PacketSerializer.h">
@@ -97,6 +100,9 @@
     </ClInclude>
     <ClInclude Include="HeapObjectPool.h">
       <Filter>Header Files\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="FrameBuffer.h">
+      <Filter>Header Files\Core</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
