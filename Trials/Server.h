@@ -21,19 +21,6 @@
 
 namespace Trials
 {
-	struct PacketTracker
-	{
-		unsigned int headerSize;
-		unsigned int bytesReceived;
-		bool hasHeader;
-
-		evpp::Buffer* header_buffer;
-		evpp::Buffer* data_buffer;
-		cv::Mat* image_buffer;
-
-		PacketTracker();
-	};
-	
 	class Server
 	{
 	private:
@@ -44,7 +31,7 @@ namespace Trials
 
 	public:
 		static FrameBuffer frame;
-		static HeapObjectPool<cv::Mat, 128> pool;
+		static HeapObjectPool<cv::Mat, MAX_FRAME_BUFFER> pool;
 
 		Server(evpp::EventLoop* loop,
 			const std::string& name,
@@ -52,6 +39,8 @@ namespace Trials
 			int threadCount);
 
 		void Start();
+
+		void SendPacketToClient(evpp::Buffer* buf, unsigned int uniqueId);
 
 	private: 
 		void OnConnection(const evpp::TCPConnPtr& conn);

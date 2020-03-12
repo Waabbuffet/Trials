@@ -2,6 +2,7 @@
 
 #ifndef trials_heapObjectPool00
 #define trials_heapObjectPool00
+
 #include <vector>
 #include <map>
 #include <iostream>
@@ -51,6 +52,7 @@ namespace Trials
 		{
 			int lastFreeIndex = -1;
 			mapLock.lock();
+			std::cout << "Pool Size: " << objectOwner.size() << std::endl;
 			for (int i = 0; i < objectOwner.size(); i++)
 			{
 				if (!objectOwner[i])
@@ -59,7 +61,7 @@ namespace Trials
 					{
 						if (lastFreeIndex == -1)
 						{
-							std::cout << "Pool Size: " << objectOwner.size();
+							
 							T* tmp = lockAndCreateNew(i, r);
 							ptrToIndex.insert(std::pair<T*, int>(tmp, i));
 							mapLock.unlock();
@@ -70,7 +72,7 @@ namespace Trials
 							T* temp = lockAndUseOld(lastFreeIndex, r);
 							r->reuse(temp);
 							ptrToIndex.insert(std::pair<T*, int>(temp, lastFreeIndex));
-							std::cout << "Pool Size: " << objectOwner.size();
+							std::cout << "Pool Size: " << objectOwner.size() << std::endl;
 							mapLock.unlock();
 							return temp;
 						}
@@ -81,7 +83,7 @@ namespace Trials
 						{
 							T* tmp = lockAndUseOld(i, r);
 							ptrToIndex.insert(std::pair<T*, int>(tmp, i));
-							std::cout << "Pool Size: " << objectOwner.size();
+							//std::cout << "Pool Size: " << objectOwner.size();
 							mapLock.unlock();
 							return tmp;
 						}else
@@ -99,7 +101,7 @@ namespace Trials
 					T* tempPtr = r->initialize();
 					ptrToIndex.insert(std::pair<T*, int>(tempPtr, objectOwner.size()));
 					objectOwner.push_back(true);
-					std::cout << "Pool Size: " << objectOwner.size();
+					
 					theObjectPtrs.push_back(tempPtr);
 					mapLock.unlock();
 					return tempPtr;
@@ -114,7 +116,7 @@ namespace Trials
 			{
 				T* temp = lockAndUseOld(lastFreeIndex, r);
 				r->reuse(temp);
-				std::cout << "Pool Size: " << objectOwner.size();
+				
 				ptrToIndex.insert(std::pair<T*, int>(temp, lastFreeIndex));
 				mapLock.unlock();
 				return temp;
@@ -146,11 +148,13 @@ namespace Trials
 			{
 				if (theObjectPtrs[index] != nullptr)
 				{
-					//std::cout << "Deleted";
+					std::cout << "Deleted size of pool before" << theObjectPtrs.size() << std::endl;
 					objectOwner[index] = false;
 					ptrToIndex.erase(ptr);
 					delete theObjectPtrs[index];
-					theObjectPtrs[index] = nullptr;
+					theObjectPtrs.erase(theObjectPtrs.begin()+index);
+					std::cout << "Deleted size of pool after" << theObjectPtrs.size() << std::endl;
+					//theObjectPtrs[index] = nullptr;
 				}
 			}
 			mapLock.unlock();
@@ -172,8 +176,11 @@ namespace Trials
 		{
 			mapLock.lock();
 			int index = indexOf(ptr);
+			std::cout << "Disowned the pool Size before: " << objectOwner.size() << std::endl;
 			objectOwner.at(index) = false;
 			ptrToIndex.erase(ptr);
+			std::cout << "Disowned the pool Size after: " << objectOwner.size() << std::endl;
+			
 			mapLock.unlock();
 		}
 
@@ -194,6 +201,7 @@ namespace Trials
 
 		T* lockAndCreateNew(int i, Requirement<T> *r)
 		{
+			std::cout << "Using a new matrix" << objectOwner.size() << std::endl;
 			objectOwner[i] = true;
 			theObjectPtrs[i] = r->initialize();
 			return theObjectPtrs[i];
@@ -201,6 +209,7 @@ namespace Trials
 
 		T* lockAndUseOld(int i, Requirement<T>* r)
 		{
+			std::cout << "Using old matrix" << objectOwner.size() << std::endl;
 			objectOwner[i] = true;
 			r->reuse(theObjectPtrs[i]);
 			return theObjectPtrs[i];

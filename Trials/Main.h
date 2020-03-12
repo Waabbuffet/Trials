@@ -6,6 +6,7 @@
 //This header is just meant to hold all of the constants for the different compile options 
 #define H_SERVER
 #define H_OS_WINDOWS
+#define EVPP_HTTP_CLIENT_SUPPORTS_SSL
 
 #ifdef H_OS_WINDOWS
 #include <WinSock2.h>
@@ -15,8 +16,10 @@
 #define CL_HPP_ENABLE_EXCEPTIONS
 #define CL_HPP_TARGET_OPENCL_VERSION 200
 
-#define GOOGLE_STRIP_LOG -1
+//#define GOOGLE_STRIP_LOG -1
 
+
+#include "Constants.h"
 //#include <evpp/tcp_server.h>
 //#include <evpp/tcp_client.h>
 //#include <evpp/buffer.h>

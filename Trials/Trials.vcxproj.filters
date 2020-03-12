@@ -72,6 +72,9 @@
     <ClCompile Include="FrameBuffer.cpp">
       <Filter>Source Files\Core</Filter>
     </ClCompile>
+    <ClCompile Include="Proxy.cpp">
+      <Filter>Source Files\Core\Network</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="PacketSerializer.h">
@@ -104,6 +107,12 @@
     <ClInclude Include="FrameBuffer.h">
       <Filter>Header Files\Core</Filter>
     </ClInclude>
+    <ClInclude Include="Constants.h">
+      <Filter>Header Files\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Proxy.h">
+      <Filter>Header Files\Core\Network</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -120,5 +129,10 @@
     <Text Include="CMakeLists.txt">
       <Filter>Source Files</Filter>
     </Text>
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="datasets\cascades\haarcascade_frontalface_default.xml">
+      <Filter>Resource Files</Filter>
+    </Xml>
   </ItemGroup>
 </Project>

@@ -24,6 +24,8 @@ namespace Trials
 		int sessionId;
 
 		bool packetPending, hasHeader;
+		
+		PacketTracker* connectionData;
 		std::mutex mutex_;          //The mutex locking the active_connection. Prevents changing the active_connection while we are writing to it 
 		evpp::TCPConnPtr active_connection_; //The active connection, equivalent to a event loop and a socket
 		std::function<void(const evpp::TCPConnPtr & conn, evpp::Buffer * buf)> onMessageFunction;
@@ -45,6 +47,7 @@ namespace Trials
 		void rawWriteToConnection(evpp::Buffer* buf);
 
 	private:
+		void handleFacePacket(const evpp::TCPConnPtr& conn, evpp::Buffer* buf, Trials::FaceHeader* headers);
 		void onConnectionEstablished(const evpp::TCPConnPtr& conn);
 		void defaultOnMessageFromServer(const evpp::TCPConnPtr& conn, evpp::Buffer* buf);
 		void onMessageFromServer(const evpp::TCPConnPtr& conn, evpp::Buffer* buf);

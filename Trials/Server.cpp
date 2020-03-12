@@ -3,21 +3,6 @@
 
 namespace Trials
 {
-    PacketTracker::PacketTracker()
-        : 
-        bytesReceived(0),
-        hasHeader(false),
-        header_buffer(new evpp::Buffer(sizeof(Trials::DataHeader))),
-        data_buffer(new evpp::Buffer(sizeof(Trials::DataHeader))), 
-        headerSize(sizeof(Trials::DataHeader))
-    {
-      
-        
-    }
-
-    //TODO: I'd love to make a generic version of this
-    //Basically we can register packets to initializers, handlers, and finishers
-    //Then I can use this as a base for anything
     Server::Server(evpp::EventLoop* loop,
         const std::string& serverAddr,
         const std::string& name,
@@ -26,13 +11,12 @@ namespace Trials
         connectionPools(),
         connectionData()
     {
-
         theServer.SetConnectionCallback(
             std::bind(&Server::OnConnection, this, std::placeholders::_1));
 
         theServer.SetMessageCallback(
             std::bind(&Server::onMessageReceive, this, std::placeholders::_1, std::placeholders::_2));
-
+        frame.setOwner(this);
     }
 
     void Server::Start()
@@ -61,7 +45,7 @@ namespace Trials
     void Server::onMessageReceive(const evpp::TCPConnPtr& conn, evpp::Buffer* buf)
     {
         unsigned int tempId = conn->id()-1;
-        std::cout << "Server received something "<< tempId << "Remember: "<< connectionData.size() <<std::endl;
+        //std::cout << "Server received something "<< tempId << "Remember: "<< connectionData.size() <<std::endl;
 
         evpp::Buffer* header_buffer = connectionData[tempId]->header_buffer;
         evpp::Buffer* data_buffer = connectionData[tempId]->data_buffer;
@@ -69,16 +53,15 @@ namespace Trials
 
         while (buf->size() > 0)
         {
-           std::cout << "Server received something " << tempId << "Server read" << buf->size() << std::endl;
+           //std::cout << "Server received something " << tempId << "Server read" << buf->size() << std::endl;
             if (!connectionData[tempId]->hasHeader)//is used for checking if we are collecting data, or are we collecting the header 
             {
                 if (header_buffer->size() < connectionData[tempId]->headerSize)
                 {
                     //super important that this never goes negative otherwise ill be here forever
-                    //TODO: Catch this error and stop
                     
                     header_buffer->Append(buf->Next(connectionData[tempId]->headerSize - header_buffer->size()));
-                    std::cout << "After buffer" << buf->size() << std::endl;
+                    //std::cout << "After buffer" << buf->size() << std::endl;
                 }
 
                 if (header_buffer->size() == sizeof(Trials::DataHeader))
@@ -89,10 +72,7 @@ namespace Trials
                         switch (incoming_header->type_)
                         {
                         case 'F':
-                            //Here we promote the data into an image type and need to go back to collecting that
-                            //TODO: We can save one loop cycle by looking for data now
-                            std::cout << "Expanded the header size to" << sizeof(ImageHeader) << "from" << connectionData[tempId]->headerSize;
-                            //std::cout << "The data is" << connectionData[tempId]->bytesReceived << " size is ahaha";
+                           
                             connectionData[tempId]->headerSize = sizeof(ImageHeader);
                             break;
                         case 'D':
@@ -181,14 +161,13 @@ namespace Trials
             require_.type = CV_8UC3;
         }
 
-        std::cout << "The header resolution is: " << headers->resolutionX_ << "resolutionY: " << headers->resolutionY_;
-
+        //std::cout << "The header resolution is: " << headers->resolutionX_ << "resolutionY: " << headers->resolutionY_;
         if (connectionData[tempId]->bytesReceived == 0) //Need to grab matrix from pool
         {
             connectionData[tempId]->image_buffer = pool.acquire(&require_);
         }
         
-        std::cout << "current: " << connectionData[tempId]->bytesReceived << "vs" << headers->dataLength_ <<std::endl;
+        //std::cout << "current: " << connectionData[tempId]->bytesReceived << "vs" << headers->dataLength_ <<std::endl;
         if (connectionData[tempId]->image_buffer != nullptr) //if the pool return an image buffer now we can read data
         {
             evpp::Slice readSlice = buf->Next(headers->dataLength_ - connectionData[tempId]->bytesReceived);
@@ -203,12 +182,24 @@ namespace Trials
         if (connectionData[tempId]->bytesReceived == headers->dataLength_)
         {
             //Here we can move the image to the frame buffer queue 
-            frame.addFrame(connectionData[tempId]->image_buffer);
+            frame.addFrame(connectionData[tempId]->image_buffer, tempId);
         }
     }
 
     void Server::handleDataPacket(const evpp::TCPConnPtr& conn, evpp::Buffer* buf, DataHeader* headers)
     {
         //NO-OP yet
+    }
+
+    void Server::SendPacketToClient(evpp::Buffer* buf, unsigned int uniqueId)
+    {
+ 
+        for (auto conn : connectionPools)
+        {
+            if (conn->id() == uniqueId)
+            {
+                conn->Send(buf);
+            }
+        }
     }
 }

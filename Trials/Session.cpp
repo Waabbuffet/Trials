@@ -90,7 +90,6 @@ namespace Trials
             std::lock_guard<std::mutex> lock(mutex_);
             if (conn->IsConnected())
             {
-                std::cout << "New connection established! " << this->sessionId << "vs" << conn->id();
                 active_connection_ = conn;
             }
             else
@@ -98,9 +97,96 @@ namespace Trials
                 active_connection_.reset();
             }
         }
-        
+        //Review this 
         void TCPSession::defaultOnMessageFromServer(const evpp::TCPConnPtr& conn, evpp::Buffer* buf)
         {
+            bool byPass = hasHeader;
+
+            while (buf->size() > 0)
+            {
+                //std::cout << "Server received something " << tempId << "Server read" << buf->size() << std::endl;
+                if (!hasHeader)//is used for checking if we are collecting data, or are we collecting the header 
+                {
+                    if (header_buffer.size() < connectionData->headerSize)
+                    {
+                        header_buffer.Append(buf->Next(connectionData->headerSize - header_buffer.size()));
+                    }
+
+                    if (header_buffer.size() == sizeof(Trials::DataHeader))
+                    {
+                        struct Trials::DataHeader* incoming_header = (Trials::DataHeader*)header_buffer.data();
+                        if (incoming_header != nullptr)
+                        {
+                            switch (incoming_header->type_)
+                            {
+                            case 'B':
+                                connectionData->headerSize = sizeof(FaceHeader);
+                                break;
+                            case 'D':
+                                connectionData->hasHeader = true;
+                                connectionData->bytesReceived = 0;
+                                break;
+                            }
+                        }
+                        else
+                        {
+                            connectionData->hasHeader = false;
+                            connectionData->bytesReceived = 0;
+                            connectionData->headerSize = sizeof(DataHeader);
+                            header_buffer.Reset();
+                        }
+                    }
+
+                    if (header_buffer.size() == connectionData->headerSize)
+                    {
+                        connectionData->hasHeader = true;
+                        connectionData->bytesReceived = 0;
+                    }
+                }
+
+                if (hasHeader)//now we have the full header
+                {
+                    try
+                    {
+                        struct Trials::DataHeader* incoming_header = (Trials::DataHeader*)header_buffer.data();
+                        if (incoming_header != nullptr)
+                        {
+                            //TODO: Split this into handle packet read, and handle packet complete
+                            switch (incoming_header->type_)
+                            {
+                            case 'B':
+                                handleFacePacket(conn, buf, (Trials::FaceHeader*)incoming_header);
+                                break;
+                            }
+
+                            if (connectionData->bytesReceived == incoming_header->dataLength_)
+                            {
+                                connectionData->hasHeader = false;
+                                connectionData->bytesReceived = 0;
+                                connectionData->headerSize = sizeof(DataHeader);
+                                header_buffer.Reset();
+                            }
+                        }
+                        else
+                        {
+                            std::cout << "[TCPSession] Unable to read header due to typecase";
+                            hasHeader = false;
+                            connectionData->bytesReceived = 0;
+                            connectionData->headerSize = sizeof(DataHeader);
+                            header_buffer.Reset();
+                        }
+                    }
+                    catch (std::exception e)
+                    {
+                        std::cout << "[TCPSession] Unable to read header due to e" << e.what();
+                        hasHeader = false;
+                        connectionData->bytesReceived = 0;
+                        connectionData->headerSize = sizeof(DataHeader);
+                        header_buffer.Reset();
+                    }
+                }
+            }
+            /*
             while (buf->size() >= sizeof(Trials::DataHeader))
             {
                 if (!hasHeader)//is used for checking if we are collecting data, or are we collecting the header 
@@ -143,12 +229,10 @@ namespace Trials
                     //now we looking for data
                     //TODO let server talk with client
                 }
-            }
+            }*/
             
         }
-        
-        //This function is called whenever the server responds with a message 
-        //If the session has no registered callback function the client 
+
         void TCPSession::onMessageFromServer(const evpp::TCPConnPtr& conn, evpp::Buffer* buf)
         {
             if (this->onMessageFunction)
@@ -158,6 +242,28 @@ namespace Trials
             else
             {
                 this->defaultOnMessageFromServer(conn, buf);
+            }
+        }
+
+        void TCPSession::handleFacePacket(const evpp::TCPConnPtr& conn, evpp::Buffer* buf, Trials::FaceHeader* headers)
+        {
+            //Now we can receive the data
+            //At this point I have receive the header data
+            
+            if (connectionData->bytesReceived < headers->dataLength_) //if the pool return an image buffer now we can read data
+            {
+                evpp::Slice readSlice = buf->Next(headers->dataLength_ - connectionData->bytesReceived);
+                unsigned int bytes_read = readSlice.size();
+
+                //I can't remove this memcopy I don't think 
+                std::memcpy((unsigned char*)((unsigned char*)data_buffer.data() + connectionData->bytesReceived), (unsigned char*)readSlice.data(), readSlice.size());
+                connectionData->bytesReceived += bytes_read;
+                
+            }
+
+            if (connectionData->bytesReceived == headers->dataLength_)
+            {
+                std::cout << "Server Sent: " << data_buffer.ToString();
             }
         }
 }

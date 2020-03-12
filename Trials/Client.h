@@ -43,6 +43,13 @@ namespace Trials
 		bool isSessionConnected(int sessionId);
 		void waitForSessionConnection(int sessionId);
 
+
+		void readFriendsListFromDatabase();
+
+		void readFromDatabase();
+		void writeToDatabase();
+
+
 		void writeToServer(int sessionId, evpp::Buffer* data_buffer);
 		void startAll();
 		void stopAll();

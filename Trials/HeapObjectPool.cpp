@@ -1,6 +1,5 @@
 #include "HeapObjectPool.h"
 
-
 namespace Trials
 {
 	OpenCVMatrixRequirement::OpenCVMatrixRequirement(int sizeX, int sizeY, int sizeZ, int type):
@@ -30,7 +29,7 @@ namespace Trials
 	cv::Mat* OpenCVMatrixRequirement::initialize()
 	{
 		cv::Mat*  elementptr = new cv::Mat(sizeY, sizeX, type);
-		std::cout << "had to create new one lol";
+		//std::cout << "had to create new one lol";
 		return elementptr;
 	}
 
@@ -38,7 +37,7 @@ namespace Trials
 	//Need to find better implementation
 	void OpenCVMatrixRequirement::reuse(cv::Mat* elementptr)
 	{
-		std::cout << "Reused the function";
+		//std::cout << "Reused the function";
 		elementptr->create(sizeY, sizeX, type);
 	}
 }

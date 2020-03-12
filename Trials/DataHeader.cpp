@@ -18,4 +18,23 @@ namespace Trials
 	{
 
 	}
+
+	FaceHeader::FaceHeader(unsigned int numberOfFaces, int dataLength)
+		: numberOfFaces(numberOfFaces),
+		DataHeader{ 'B', dataLength}
+	{
+
+	}
+
+	PacketTracker::PacketTracker()
+		:
+		bytesReceived(0),
+		hasHeader(false),
+		header_buffer(new evpp::Buffer(sizeof(Trials::DataHeader))),
+		data_buffer(new evpp::Buffer(sizeof(Trials::DataHeader))),
+		headerSize(sizeof(Trials::DataHeader))
+	{
+
+		
+	}
 }

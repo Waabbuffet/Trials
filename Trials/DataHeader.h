@@ -3,7 +3,9 @@
 #ifndef DataHeader00
 #define DataHeader00
 #include <string>
-
+#include "Main.h";
+#include "evpp/buffer.h"
+#include "opencv2/opencv.hpp"
 
 //Todo: Create Mapping of headers to handlers
 //Then we can add in handle functions to the dataheader
@@ -25,11 +27,31 @@ namespace Trials
 		int resolutionX_, resolutionY_, uniqueId_;
 
 		bool isCompressed_, isEncoded_;
-		//std::string formatType_;
+		
 
 	public:
 		ImageHeader(int resolutionX, int resolutionY, int uniqueId,
 			bool isCompressed, int dataLength);
+	};
+
+	struct FaceHeader : DataHeader
+	{
+		unsigned int numberOfFaces;
+	
+		FaceHeader(unsigned int numberOfFaces, int dataLength);
+	};
+
+	struct PacketTracker
+	{
+		unsigned int headerSize;
+		unsigned int bytesReceived;
+		bool hasHeader;
+
+		evpp::Buffer* header_buffer;
+		evpp::Buffer* data_buffer;
+		cv::Mat* image_buffer;
+
+		PacketTracker();
 	};
 }
 #endif //DataHeader00

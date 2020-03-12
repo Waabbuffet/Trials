@@ -101,15 +101,15 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>C:\Program Files %28x86%29\IntelSWTools\system_studio_2020\OpenCL\sdk\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\Waabbuffet\Desktop\Workspace\APIs\firebase\include;C:\Program Files %28x86%29\IntelSWTools\system_studio_2020\OpenCL\sdk\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>
       </DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\Program Files %28x86%29\IntelSWTools\system_studio_2020\OpenCL\sdk\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>OpenCL.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Users\Waabbuffet\Desktop\Workspace\APIs\firebase\libs\windows\VS2015\MD\x64\Debug;C:\Program Files %28x86%29\IntelSWTools\system_studio_2020\OpenCL\sdk\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>OpenCL.lib;firebase_admob.lib;firebase_analytics.lib;firebase_app.lib;firebase_auth.lib;firebase_database.lib;firebase_dynamic_links.lib;firebase_functions.lib;firebase_instance_id.lib;firebase_messaging.lib;firebase_remote_config.lib;firebase_storage.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -151,17 +151,20 @@
     <ClCompile Include="HeapObjectPool.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="PacketSerializer.cpp" />
+    <ClCompile Include="Proxy.cpp" />
     <ClCompile Include="Server.cpp" />
     <ClCompile Include="Session.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Client.h" />
+    <ClInclude Include="Constants.h" />
     <ClInclude Include="DataHeader.h" />
     <ClInclude Include="FrameBuffer.h" />
     <ClInclude Include="HeapObjectPool.h" />
     <ClInclude Include="Main.h" />
     <ClInclude Include="Main.h.in" />
     <ClInclude Include="PacketSerializer.h" />
+    <ClInclude Include="Proxy.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Server.h" />
     <ClInclude Include="Session.h" />
@@ -175,6 +178,9 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="datasets\cascades\haarcascade_frontalface_default.xml" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

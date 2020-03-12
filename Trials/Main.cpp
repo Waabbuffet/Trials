@@ -5,7 +5,21 @@
 #include "opencv2/opencv.hpp"
 #include "Framebuffer.h"
 
+#include "firebase/app.h"
+#include "firebase/database.h"
+
 #include <thread>
+
+#include <stdio.h>
+#include <stdlib.h>
+
+#include <evpp/event_loop_thread.h>
+
+#include <evpp/httpc/request.h>
+#include <evpp/httpc/conn.h>
+#include <evpp/httpc/response.h>
+#include <evpp/httpc/ssl.h>
+#include <openssl/err.h>
 
 #include "HeapObjectPool.h"
 
@@ -86,9 +100,41 @@ void testOpenCL()
     }*/
 }
 
-//Init pool
-Trials::HeapObjectPool<cv::Mat, 128> Trials::Server::pool;
-Trials::FrameBuffer Trials::Server::frame = Trials::FrameBuffer(128,2,100);
+//Init pool and frame buffer
+Trials::HeapObjectPool<cv::Mat, MAX_FRAME_BUFFER> Trials::Server::pool;
+Trials::FrameBuffer Trials::Server::frame(MAX_FRAME_BUFFER, WAIT_FOR_X_FRAMES, TIME_BETWEEN_FRAMES_MS);
+
+/*
+int main(int, char**)
+{
+    try
+    {
+        // That's all that is needed to do cleanup of used resources (RAII style).
+        curlpp::Cleanup myCleanup;
+
+        // Our request to be sent.
+        curlpp::Easy myRequest;
+
+        // Set the URL.
+        myRequest.setOpt<Url>("https://nmk01-5be95.firebaseio.com/friendlist.json");
+
+        // Send request and get a result.
+        // By default the result goes to standard output.
+        myRequest.perform();
+    }
+
+    catch (curlpp::RuntimeError & e)
+    {
+        std::cout << e.what() << std::endl;
+    }
+
+    catch (curlpp::LogicError & e)
+    {
+        std::cout << e.what() << std::endl;
+    }
+
+    return 0;
+}*/
 
 int main(int argc, char* argv[])
 {
@@ -121,16 +167,17 @@ int main(int argc, char* argv[])
     if (!cap.isOpened())
         return -1;
 
-    cap.set(cv::CAP_PROP_FRAME_WIDTH, 500);
-    cap.set(cv::CAP_PROP_FRAME_WIDTH, 500);
+    cap.set(cv::CAP_PROP_FRAME_WIDTH, 640);
+    cap.set(cv::CAP_PROP_FRAME_HEIGHT, 480);
 
-    Trials::HeapObjectPool<cv::Mat, 128> pool = Trials::HeapObjectPool<cv::Mat, 128>();
-    Trials::OpenCVMatrixRequirement require_(500, 500, 3, CV_8UC3);
+
+    Trials::HeapObjectPool<cv::Mat, 128> thepool;
+    Trials::OpenCVMatrixRequirement require_(640, 480, 3, CV_8UC3);
 
     evpp::EventLoopThread loop;
     std::string serverAddr = "10.0.0.192:9099";
 
-    struct Trials::ImageHeader data_(500, 500, 1, false, 1);
+    struct Trials::ImageHeader data_(640, 480, 1, false, 1);
     evpp::Buffer the_buffer(sizeof(Trials::DataHeader));
     Trials::Client client(loop.loop(), "trials_client", serverAddr, 1, 1);
 
@@ -157,12 +204,12 @@ int main(int argc, char* argv[])
 
             the_buffer.Write(&data_, sizeof(data_));
             the_buffer.Write(encodedFrame.data(), data_.dataLength_);
-            std::cout << "Dylan you son of a " << the_buffer.size();
+            //std::cout << "Dylan you son of a " << the_buffer.size();
 
             client.writeToServer(0, &the_buffer);
             the_buffer.Reset();
-            std::cout << "the data is" << data_.dataLength_ << std::endl;
-            std::this_thread::sleep_for(std::chrono::milliseconds(300));
+            //std::cout << "the data is" << data_.dataLength_ << std::endl;
+            std::this_thread::sleep_for(std::chrono::milliseconds(200));
         }
     }
 
@@ -182,24 +229,19 @@ int main(int argc, char* argv[])
 
     loop.Stop(true);
 #else
-
-    //int value = ((1 - 125) % 5);
-    //std::cout << "Value: " << value;
-   
-   //Trials::FrameBuffer *buf = new Trials::FrameBuffer(128, 60, 1);
-   //std::thread thread_object(buf);
-
    std::thread thread_object(&Trials::FrameBuffer::run, &Trials::Server::frame);
 
-   evpp::EventLoop loop;
-   std::string serverAddr = std::string("10.0.0.192") + ":9099";
+   evpp::EventLoop loop; //changed from event loop
+
+   std::string serverAddr = std::string(SERVER_NETWORK_IP) + ":" + SERVER_NETWORK_PORT;
    Trials::Server server(&loop, serverAddr, "trials_server", 1);
+ 
+
    server.Start();
    loop.Run();
 #endif // DEBUG
     return 0;
 }
-
 void TestTheTester(int& a, int b)
 {
     if (b < a)
